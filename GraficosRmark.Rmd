@@ -1,0 +1,116 @@
+---
+title: "Muesteo"
+author: "Mario Guillem"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r, warning=FALSE, message=FALSE}
+
+# Data Cleaning -----------------------------------------------------------
+
+
+
+datos <- readxl::read_xlsx("C:/Users/Mario/Desktop/Muestreo.xlsx")
+
+colnames(datos)<- c("Paga","Cantidad","PagaLibrosMaster","GastoLibroMaster","TipoEdu","NivelEdu","Residencia","RecibeBeca","TipoBeca","CuantiaBeca")
+
+
+datos$Paga <- as.factor(datos$Paga)
+datos$PagaLibrosMaster <- as.factor(datos$PagaLibrosMaster)
+datos$TipoEdu <- as.factor(datos$TipoEdu)
+datos$NivelEdu <- as.factor(datos$NivelEdu)
+datos$Residencia <- as.factor(datos$Residencia)
+datos$RecibeBeca <- as.factor(datos$RecibeBeca)
+datos$TipoBeca <- as.factor(datos$TipoBeca)
+datos$CuantiaBeca <- as.factor(datos$CuantiaBeca)
+
+library(tidyverse)
+library(RColorBrewer)
+
+
+
+```
+
+## Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=TRUE}
+
+"TIPO EDUCACIÓN"
+tipo <- datos %>% group_by(TipoEdu,)%>% count()
+tipo <- tipo[1:3,]
+
+coul <- brewer.pal(5, "Set2") 
+barplot(height=tipo$n, names=tipo$TipoEdu, col=coul,main="Número de estudiantes por tipo de educación")
+
+
+"NIVEL EDUCATIVO"
+media_por_nivel_educativo <- aggregate(Cantidad ~ NivelEdu, data = datos, FUN = mean)
+media_por_nivel_educativo$Cantidad <- round(media_por_nivel_educativo$Cantidad,2)
+library(gt)
+
+gt(media_por_nivel_educativo) %>% tab_header(
+  title = md("**Gasto medio en matrícula y otros gastos**")
+)%>%  tab_source_note(source_note = "Fuente: Elaboración propia")
+
+
+"RESIDENCIA"
+
+
+gasto_total <- datos %>% mutate(total = Cantidad + GastoLibroMaster)
+
+media_por_residencia <- aggregate(total ~ Residencia, data = gasto_total, FUN = mean)
+gt(media_por_residencia)
+
+b <- barplot(height = media_por_residencia$total,names=media_por_residencia$Residencia,las=1.5,col=coul,main="Gasto medio total por tipo de residencia")
+
+
+
+datos%>% na.omit(CuantiaBeca)%>%
+  group_by(CuantiaBeca,)%>%
+  count()%>%
+  ggplot(aes(CuantiaBeca,n))+
+  geom_bar(stat='identity',fill=rgb(0.1,0.4,0.5,0.7) )+
+  scale_x_discrete(limits = c("Menos de 500 euros","500-1500 euros","1500-2500 euros","2500-3500 euros","3500-4500 euros","Más de 4500 euros"))+
+  theme(axis.text = element_text(face="bold"))+labs(title= "Nº de becas según la cuantía",caption = "Elaboración propia")
+
+
+
+"NIVEL EDUCATIVO Y TIPO EDUCACIÓN"
+
+
+
+AA <- aggregate(Cantidad ~ NivelEdu+ TipoEdu, data = datos, FUN = mean)
+
+AA$NivelEdu <- as.character(AA$NivelEdu)
+AA$NivelEdu[AA$NivelEdu=="Bachillerato/ Ciclo formativo de grado medio"] <- "Bach/ G. medio"                      
+AA$NivelEdu[AA$NivelEdu=="Ciclo formativo de grado superior"] <- "G. superior"                      
+AA$NivelEdu[AA$NivelEdu=="Enseñanzas de régimen especial (artísticas, deportivas, de idiomas)"] <- "Enseñanzas régimen especial"                      
+
+AA$NivelEdu[AA$NivelEdu=="Enseñanza universitarias (grado, máster, doctorado)"] <- "E. universitarias"
+
+
+
+ggplot(AA,aes(x=NivelEdu,y=Cantidad,fill=factor(TipoEdu)))+
+  geom_bar(stat="identity",position="dodge")+
+  scale_fill_discrete(name="TipoEdu",
+                      breaks=c(1, 2,3),
+                      labels=c("Público", "Privado","Concertado"))+
+  scale_fill_discrete("TipoEdu")+theme_minimal()+
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+        axis.text= element_text(size=15),
+        axis.title= element_text(size=14, face="bold"))+
+  labs(title= "Gasto por Nivel educativo y tipo de educación",caption = "Elaboración propia")+
+  xlab("")+ylab("")
+
+
+```
+
