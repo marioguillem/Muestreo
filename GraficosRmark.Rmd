@@ -114,3 +114,82 @@ ggplot(AA,aes(x=NivelEdu,y=Cantidad,fill=factor(TipoEdu)))+
 
 ```
 
+```{r Jota}
+library(readxl)
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+Encuesta_respuestas_ <- read_excel("C:/Users/Mario/Desktop/Encuesta_respuestas.xlsx", 
+ 
+                                                                     sheet = "Respuestas de formulario 1")
+
+Encuesta_respuestas_ <- Encuesta_respuestas_[1:60,]
+
+head(Encuesta_respuestas_)
+
+Encuesta_respuestas_$`Gasto en matriculas` <- as.numeric(Encuesta_respuestas_$`Gasto en matriculas`)
+Encuesta_respuestas_$`Gasto medio mat` <- as.numeric(Encuesta_respuestas_$`Gasto medio mat`)
+Encuesta_respuestas_$`Gasto tot libros` <- as.numeric(Encuesta_respuestas_$`Gasto tot libros`)
+Encuesta_respuestas_$`Gasto medio libros` <- as.numeric(Encuesta_respuestas_$`Gasto medio libros`)
+
+
+hist(Encuesta_respuestas_$`Gasto medio libros`)
+
+
+
+
+
+
+summary(Encuesta_respuestas_$`Gasto medio mat`)
+
+
+
+
+Encuesta_respuestas_%>%ggplot(aes(x = `¿En qué tipo de vivienda reside habitualmente?` , y = `Gasto medio mat` ))+
+  geom_boxplot(width = 0.5,lwd = 0.5,aes(fill = `¿En qué tipo de vivienda reside habitualmente?`))+
+  geom_jitter(width = 0.15)+
+  theme(legend.position = "none")+
+  theme_bw()+
+  labs(x = "", y = "", title = "Gasto medio por estudiante en matrículas y pagos educativos por tipo de vivienda",
+       caption = "Fuente: Elaboración propia")
+
+
+
+
+
+# Segundo datset ----------------------------------------------------------
+
+
+library(readxl)
+datos <- read_excel("C:/Users/LENOVO/Desktop/BIA/TERCERO/Encuestas/Muestreo (1).xlsx")
+colnames(datos)<- c("Paga","Cantidad","PagaLibrosMaster","GastoLibroMaster","TipoEdu","NivelEdu","Residencia","RecibeBeca","TipoBeca","CuantiaBeca")
+
+datos$Paga <- as.factor(datos$Paga)
+datos$PagaLibrosMaster <- as.factor(datos$PagaLibrosMaster)
+datos$TipoEdu <- as.factor(datos$TipoEdu)
+datos$NivelEdu <- as.factor(datos$NivelEdu)
+datos$Residencia <- as.factor(datos$Residencia)
+datos$RecibeBeca <- as.factor(datos$RecibeBeca)
+datos$TipoBeca <- as.factor(datos$TipoBeca)
+datos$CuantiaBeca <- as.factor(datos$CuantiaBeca)
+
+library(RColorBrewer)
+coul <- brewer.pal(5, "Set2")
+
+gasto_total <- datos %>%mutate(total = Cantidad + GastoLibroMaster)
+
+
+gasto_total%>% ggplot(aes(x = Residencia, y = total))+
+  geom_boxplot(aes(fill = Residencia))+
+  labs(x = "", y = "", title = "Gasto total por estudiante por lugar de realización de los estudios", 
+       subtitle = "Distribución del gasto total por estudiante en función de donde está realzando sus estudios",
+       caption = "Fuente: Elaboración propia")+
+  scale_x_discrete(labels = NULL)+
+  theme_bw()
+
+
+gasto_total$total
+
+
+```
+
